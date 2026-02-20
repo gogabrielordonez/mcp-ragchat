@@ -1,14 +1,55 @@
-# mcp-ragchat
+<p align="center">
+  <h1 align="center">mcp-ragchat</h1>
+  <p align="center">
+    An MCP server that adds RAG-powered AI chat to any website. One command from Claude Code.
+  </p>
+</p>
 
-Add AI chat to any website from Claude Code. One command.
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node.js 20+"></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.0-blue.svg" alt="TypeScript"></a>
+  <a href="https://modelcontextprotocol.io/"><img src="https://img.shields.io/badge/MCP-compatible-8A2BE2.svg" alt="MCP"></a>
+  <a href="https://www.npmjs.com/package/mcp-ragchat"><img src="https://img.shields.io/npm/v/mcp-ragchat.svg" alt="npm"></a>
+</p>
+
+---
+
+Tell Claude Code _"add AI chat to mysite.com"_ and it will crawl your content, build a local vector store, spin up a chat server, and hand you an embed snippet. No cloud infra. No database. Just one API key.
+
+## Demo
 
 ```
-"Add AI chat to mysite.com using my product docs"
+You:    "Set up AI chat for mybakery.com using this FAQ and menu content"
+
+Claude: I'll set up RAG-powered chat for mybakery.com.
+
+        [1/4] ragchat_setup
+              Splitting content into sections...
+              Generating embeddings for 12 documents...
+              Domain "mybakery.com" configured with 12 documents.
+
+        [2/4] ragchat_test
+              Query: "What are your hours?"
+              Reply: "We're open Monday-Saturday 7am-6pm, and Sunday 8am-2pm."
+              RAG Sources: mybakery.com-3 (0.91), mybakery.com-7 (0.84)
+              Latency: 340ms
+
+        [3/4] ragchat_serve
+              Chat server running at http://localhost:3456
+              POST /chat ready.
+
+        [4/4] ragchat_widget
+              Generated embed code. Paste this into your HTML:
+
+              <script src="http://localhost:3456/widget.js"></script>
+
+You:    Done. Live chat on my site in under 60 seconds.
 ```
 
-An MCP server that sets up RAG-powered chat: seeds a vector store from your markdown, starts an HTTP chat server, and generates an embeddable widget. Works with OpenAI, Anthropic, or Gemini.
+## Quick Start
 
-## Setup
+**1. Clone and build**
 
 ```bash
 git clone https://github.com/gogabrielordonez/mcp-ragchat
@@ -16,14 +57,14 @@ cd mcp-ragchat
 npm install && npm run build
 ```
 
-Add to Claude Code (`~/.claude/mcp.json`):
+**2. Configure Claude Code** (`~/.claude/mcp.json`)
 
 ```json
 {
   "mcpServers": {
     "ragchat": {
       "command": "node",
-      "args": ["/path/to/mcp-ragchat/dist/mcp-server.js"],
+      "args": ["/absolute/path/to/mcp-ragchat/dist/mcp-server.js"],
       "env": {
         "OPENAI_API_KEY": "sk-..."
       }
@@ -32,72 +73,115 @@ Add to Claude Code (`~/.claude/mcp.json`):
 }
 ```
 
+**3. Use it**
+
+Open Claude Code and say:
+
+> "Add AI chat to mysite.com. Here's the content: [paste your markdown]"
+
+Claude handles the rest.
+
 ## Tools
 
-| Tool | Description |
+| Tool | What it does |
 |------|-------------|
-| `ragchat_setup` | Seed a knowledge base from markdown content |
-| `ragchat_test` | Send a test message to verify RAG works |
-| `ragchat_serve` | Start the chat HTTP server |
-| `ragchat_widget` | Generate embeddable `<script>` tag |
-| `ragchat_status` | List all configured domains |
+| `ragchat_setup` | Seed a knowledge base from markdown content. Each `##` section becomes a searchable document with vector embeddings. |
+| `ragchat_test` | Send a test message to verify RAG retrieval and LLM response quality. |
+| `ragchat_serve` | Start a local HTTP chat server with CORS and input sanitization. |
+| `ragchat_widget` | Generate a self-contained `<script>` tag -- a floating chat bubble, no dependencies. |
+| `ragchat_status` | List all configured domains with document counts and config details. |
 
 ## How It Works
 
 ```
-Your Markdown → ragchat_setup → Local Vector Store (JSON)
-                                        ↓
-User Question → Embedding → Cosine Search → Top 3 chunks
-                                        ↓
-                              System Prompt + RAG Context → LLM → Reply
+                        +------------------+
+                        |  Your Markdown   |
+                        +--------+---------+
+                                 |
+                          ragchat_setup
+                                 |
+                    +------------v-------------+
+                    |   Local Vector Store      |
+                    |   ~/.mcp-ragchat/domains/ |
+                    |     vectors.json          |
+                    |     config.json           |
+                    +------------+-------------+
+                                 |
+          User Question          |
+               |                 |
+        +------v------+  +------v------+
+        |  Embedding  |  |  Cosine     |
+        |  Provider   +->+  Similarity |
+        +-------------+  +------+------+
+                                |
+                         Top 3 chunks
+                                |
+                    +----------v-----------+
+                    |  System Prompt       |
+                    |  + RAG Context       |
+                    |  + User Message      |
+                    +----------+-----------+
+                               |
+                    +----------v-----------+
+                    |     LLM Provider     |
+                    +----------+-----------+
+                               |
+                            Reply
 ```
 
-Everything runs locally. No cloud infrastructure required. Bring your own LLM key.
+Everything runs locally. No cloud infrastructure. Bring your own API key.
 
-## LLM Providers
+## Supported Providers
 
-Set one of these environment variables:
+### LLM (chat completions)
 
 | Provider | Env Var | Default Model |
 |----------|---------|---------------|
 | OpenAI | `OPENAI_API_KEY` | `gpt-4o-mini` |
 | Anthropic | `ANTHROPIC_API_KEY` | `claude-sonnet-4-5-20250929` |
-| Gemini | `GEMINI_API_KEY` | `gemini-2.0-flash` |
+| Google Gemini | `GEMINI_API_KEY` | `gemini-2.0-flash` |
 
-Override the model with `LLM_MODEL` and embedding model with `EMBEDDING_MODEL`.
+### Embeddings (vector search)
 
-## Example
+| Provider | Env Var | Default Model |
+|----------|---------|---------------|
+| OpenAI | `OPENAI_API_KEY` | `text-embedding-3-small` |
+| Google Gemini | `GEMINI_API_KEY` | `text-embedding-004` |
+| AWS Bedrock | `AWS_REGION` + IAM | `amazon.titan-embed-text-v2:0` |
 
-In Claude Code:
-
-> "Set up AI chat for my bakery website. Here's our menu and FAQ: [paste markdown]"
-
-Claude Code calls:
-1. `ragchat_setup` — seeds 15 documents from your markdown
-2. `ragchat_test` — sends "What are your hours?" to verify
-3. `ragchat_serve` — starts chat server on localhost:3456
-4. `ragchat_widget` — generates the embed code
-
-Paste the widget `<script>` into your HTML. Done.
+Override defaults with `LLM_MODEL` and `EMBEDDING_MODEL` environment variables.
 
 ## Architecture
 
 ```
 ~/.mcp-ragchat/domains/
   mysite.com/
-    config.json     ← system prompt, settings
-    vectors.json    ← documents + embeddings
+    config.json     -- system prompt, settings
+    vectors.json    -- documents + embedding vectors
 ```
 
-- **Vector store**: Local JSON files with cosine similarity search
-- **Embeddings**: OpenAI `text-embedding-3-small`, Gemini `text-embedding-004`, or AWS Bedrock Titan
-- **Chat server**: Node.js HTTP server with CORS, input sanitization
-- **Widget**: Self-contained `<script>` tag, no dependencies
+- **Vector store** -- Local JSON files with cosine similarity search. Zero external dependencies.
+- **Chat server** -- Node.js HTTP server with CORS and input sanitization.
+- **Widget** -- Self-contained `<script>` tag. No frameworks, no build step.
 
-## Production
+## Contributing
 
-For production deployments with multi-tenancy, security guardrails, audit trails, and managed infrastructure, see [Supersonic](https://adwaizer.com/supersonic) — the enterprise platform built on the same RAG pipeline.
+Issues and pull requests are welcome.
 
-## License
+- Found a bug? [Open an issue](https://github.com/gogabrielordonez/mcp-ragchat/issues)
+- Want to add a feature? Fork, branch, PR.
+- Questions? Start a [discussion](https://github.com/gogabrielordonez/mcp-ragchat/discussions)
 
-MIT
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=gogabrielordonez/mcp-ragchat&type=Date)](https://star-history.com/#gogabrielordonez/mcp-ragchat&Date)
+
+---
+
+### Enterprise
+
+Need multi-tenancy, security guardrails, audit trails, and managed infrastructure? Check out [Supersonic](https://adwaizer.com/supersonic) -- the enterprise AI platform built on the same RAG pipeline.
+
+---
+
+**MIT License** -- Gabriel Ordonez
