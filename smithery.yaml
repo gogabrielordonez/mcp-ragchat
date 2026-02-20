@@ -1,0 +1,32 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      openaiApiKey:
+        type: string
+        title: OpenAI API Key
+        description: Your OpenAI API key for embeddings and chat
+      anthropicApiKey:
+        type: string
+        title: Anthropic API Key
+        description: Your Anthropic API key (alternative to OpenAI)
+      geminiApiKey:
+        type: string
+        title: Gemini API Key
+        description: Your Google Gemini API key (alternative to OpenAI)
+    oneOf:
+      - required: [openaiApiKey]
+      - required: [anthropicApiKey]
+      - required: [geminiApiKey]
+  commandFunction:
+    |-
+    (config) => ({
+      command: 'node',
+      args: ['dist/mcp-server.js'],
+      env: {
+        ...(config.openaiApiKey ? { OPENAI_API_KEY: config.openaiApiKey } : {}),
+        ...(config.anthropicApiKey ? { ANTHROPIC_API_KEY: config.anthropicApiKey } : {}),
+        ...(config.geminiApiKey ? { GEMINI_API_KEY: config.geminiApiKey } : {})
+      }
+    })

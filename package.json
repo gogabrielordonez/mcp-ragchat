@@ -4,36 +4,55 @@
   "description": "MCP server that adds RAG-powered AI chat to any website. One command from Claude Code.",
   "main": "dist/mcp-server.js",
   "bin": {
-    "mcp-ragchat": "./dist/mcp-server.js"
+    "mcp-ragchat": "dist/mcp-server.js"
   },
+  "files": [
+    "dist/",
+    "src/",
+    "README.md"
+  ],
   "scripts": {
     "build": "node build.mjs",
+    "prepublishOnly": "npm run build",
     "dev": "npx tsx src/mcp-server.ts"
   },
   "keywords": [
     "mcp",
+    "mcp-server",
     "rag",
     "chat",
+    "chatbot",
     "ai",
-    "langchain",
+    "llm",
     "embeddings",
+    "vector-search",
     "claude-code",
     "cursor",
-    "model-context-protocol"
+    "model-context-protocol",
+    "openai",
+    "anthropic",
+    "gemini"
   ],
-  "author": "Gabriel Ordonez",
+  "author": "Gabriel Ordonez <gabriel@adwaizer.com>",
   "license": "MIT",
+  "homepage": "https://github.com/gogabrielordonez/mcp-ragchat#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gogabrielordonez/mcp-ragchat"
+    "url": "git+https://github.com/gogabrielordonez/mcp-ragchat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gogabrielordonez/mcp-ragchat/issues"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "esbuild": "^0.27.3",
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.0.0"
   }
 }
