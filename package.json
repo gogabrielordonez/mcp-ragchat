@@ -1,0 +1,39 @@
+{
+  "name": "mcp-ragchat",
+  "version": "1.0.0",
+  "description": "MCP server that adds RAG-powered AI chat to any website. One command from Claude Code.",
+  "main": "dist/mcp-server.js",
+  "bin": {
+    "mcp-ragchat": "./dist/mcp-server.js"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "npx tsx src/mcp-server.ts"
+  },
+  "keywords": [
+    "mcp",
+    "rag",
+    "chat",
+    "ai",
+    "langchain",
+    "embeddings",
+    "claude-code",
+    "cursor",
+    "model-context-protocol"
+  ],
+  "author": "Gabriel Ordonez",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gogabrielordonez/mcp-ragchat"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.3",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
